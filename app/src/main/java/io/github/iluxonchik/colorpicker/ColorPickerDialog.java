@@ -16,7 +16,7 @@ import android.widget.ProgressBar;
  *
  * Created by ILUXONCHIK on 21/08/2015.
  */
-public class ColorPickerDialog extends DialogFragment {
+public class ColorPickerDialog extends DialogFragment implements ColorPickerSwatch.OnColorSelectedListener{
 
     public static final int SIZE_LARGE = 1;
     public static final int SIZE_SMALL = 2;
@@ -32,7 +32,7 @@ public class ColorPickerDialog extends DialogFragment {
 
     protected int titleResId = R.string.dialog_title;
     protected int[] colors = null; // colors to show in palette
-    protected String[] colorContentDescription = null; // TODO
+    protected String[] colorContentDescriptions = null; // TODO
     protected int[] selectedColors;
     protected int numColumns; // number of columns in palette
     protected int swatchSize; // used for circle height/width
@@ -98,7 +98,7 @@ public class ColorPickerDialog extends DialogFragment {
         if (savedInstanceState != null) {
             colors = savedInstanceState.getIntArray(KEY_COLORS);
             selectedColors = savedInstanceState.getIntArray(KEY_SELECTED_COLORS);
-            colorContentDescription = savedInstanceState.getStringArray(
+            colorContentDescriptions = savedInstanceState.getStringArray(
                     KEY_COLOR_CONTENT_DESCRIPTIONS);
         }
     }
@@ -113,7 +113,7 @@ public class ColorPickerDialog extends DialogFragment {
         palette.init(swatchSize, numColumns, this);
 
         if (colors != null) {
-            showPalleteView();
+            showPaletteView();
         }
 
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity)
@@ -129,10 +129,10 @@ public class ColorPickerDialog extends DialogFragment {
                 }
             })
              .setNegativeButton(R.string.dialog_negative_button_text, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            // TODO
-                        }
+                 @Override
+                 public void onClick(DialogInterface dialog, int which) {
+                     // TODO
+                 }
              });
         }
 
@@ -142,11 +142,73 @@ public class ColorPickerDialog extends DialogFragment {
 
     }
 
-    public void showPalleteView() {
+    public void showPaletteView() {
         if (progressBar != null && palette != null) {
             progressBar.setVisibility(View.GONE);
             refreshPalette();
             palette.setVisibility(View.VISIBLE);
         }
+    }
+
+    public void showProgressBarView() {
+        if (progressBar != null && palette != null) {
+            progressBar.setVisibility(View.VISIBLE);
+            palette.setVisibility(View.GONE);
+        }
+    }
+
+    public void setColors(int[] colors, int[] selectedColors) {
+        if (this.colors != colors || this.selectedColors != selectedColors) {
+            this.colors = colors;
+            this.selectedColors = selectedColors;
+            refreshPalette();
+        }
+    }
+
+    public void setColors(int[] colors) {
+        if (this.colors != colors) {
+            this.colors = colors;
+            refreshPalette();
+        }
+    }
+
+    public void setKeySelectedColors(int[] selectedColors) {
+        if(this.selectedColors != selectedColors) {
+            this.selectedColors = selectedColors;
+            refreshPalette();
+        }
+    }
+
+    public void setKeyColorContentDescriptions(String[] contentDescriptions) {
+        if (this.colorContentDescriptions != contentDescriptions) {
+            this.colorContentDescriptions = contentDescriptions;
+            refreshPalette();
+        }
+    }
+
+    public int[] getColors() { return colors; }
+
+    public int[] getSelectedColors() { return selectedColors; }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putIntArray(KEY_COLORS, colors);
+        outState.putIntArray(KEY_SELECTED_COLORS, selectedColors);
+        outState.putStringArray(KEY_COLOR_CONTENT_DESCRIPTIONS, colorContentDescriptions);
+    }
+
+    private void refreshPalette() {
+        if (palette != null && colors != null) {
+            palette.drawPalette(colors, selectedColors, colorContentDescriptions);
+        }
+    }
+
+    @Override
+    public void onColorSelected(int color) {
+        // TODO
+        /* Have a boolean array (selected), where each index corresponds to the index in "colors"
+         * and just flip the value in that color's position (?)
+         */
     }
 }
