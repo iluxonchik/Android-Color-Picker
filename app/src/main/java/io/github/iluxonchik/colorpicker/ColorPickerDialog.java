@@ -1,8 +1,14 @@
 package io.github.iluxonchik.colorpicker;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.app.Dialog;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ProgressBar;
 
 /**
  * A dialog which takes in a input an array of colors and creates a pallete allowing the user to
@@ -31,7 +37,10 @@ public class ColorPickerDialog extends DialogFragment {
     protected int numColumns; // number of columns in palette
     protected int swatchSize; // used for circle height/width
 
+    protected boolean showOkCancelButtons = true; // TODO: do something with this later?
+
     private ColorPickerPalette palette;
+    private ProgressBar progressBar;
 
     // TODO: is this listener even need? Maybe use a listener from ColorPickerSwath
     protected ColorPickerSwatch.OnColorSelectedListener listener;
@@ -91,6 +100,53 @@ public class ColorPickerDialog extends DialogFragment {
             selectedColors = savedInstanceState.getIntArray(KEY_SELECTED_COLORS);
             colorContentDescription = savedInstanceState.getStringArray(
                     KEY_COLOR_CONTENT_DESCRIPTIONS);
+        }
+    }
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState){
+        final Activity activity = getActivity();
+
+        View view = LayoutInflater.from(activity).inflate(R.layout.color_picker_dialog, null);
+        progressBar = (ProgressBar)view.findViewById(R.id.progress);
+        palette = (ColorPickerPalette)view.findViewById(R.id.color_picker);
+        palette.init(swatchSize, numColumns, this);
+
+        if (colors != null) {
+            showPalleteView();
+        }
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity)
+                .setTitle(titleResId)
+                .setView(view);
+
+        // Add positve and negative buttons to dialog, if needed
+        if (showOkCancelButtons) {
+            alertDialogBuilder.setPositiveButton(R.string.dialog_positive_button_text, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // TODO
+                }
+            })
+             .setNegativeButton(R.string.dialog_negative_button_text, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // TODO
+                        }
+             });
+        }
+
+        alertDialog = alertDialogBuilder.create();
+
+        return alertDialog;
+
+    }
+
+    public void showPalleteView() {
+        if (progressBar != null && palette != null) {
+            progressBar.setVisibility(View.GONE);
+            refreshPalette();
+            palette.setVisibility(View.VISIBLE);
         }
     }
 }
