@@ -33,7 +33,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     protected int titleResId = R.string.dialog_title;
     protected int[] colors = null; // colors to show in palette
     protected String[] colorContentDescriptions = null; // TODO
-    protected int[] selectedColors;
+    protected boolean[] selectedColors;
     protected int numColumns; // number of columns in palette
     protected int swatchSize; // used for circle height/width
 
@@ -70,7 +70,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         return colorPickerDialog;
     }
 
-    public void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns, int swatchSize) {
+    public void initialize(int titleResId, int[] colors, boolean[] selectedColors, int numColumns, int swatchSize) {
         setArguments(titleResId, numColumns, swatchSize);
         setColors(colors, selectedColors);
     }
@@ -97,7 +97,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
 
         if (savedInstanceState != null) {
             colors = savedInstanceState.getIntArray(KEY_COLORS);
-            selectedColors = savedInstanceState.getIntArray(KEY_SELECTED_COLORS);
+            selectedColors = savedInstanceState.getBooleanArray(KEY_SELECTED_COLORS);
             colorContentDescriptions = savedInstanceState.getStringArray(
                     KEY_COLOR_CONTENT_DESCRIPTIONS);
         }
@@ -157,7 +157,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         }
     }
 
-    public void setColors(int[] colors, int[] selectedColors) {
+    public void setColors(int[] colors, boolean[] selectedColors) {
         if (this.colors != colors || this.selectedColors != selectedColors) {
             this.colors = colors;
             this.selectedColors = selectedColors;
@@ -172,7 +172,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         }
     }
 
-    public void setKeySelectedColors(int[] selectedColors) {
+    public void setKeySelectedColors(boolean[] selectedColors) {
         if(this.selectedColors != selectedColors) {
             this.selectedColors = selectedColors;
             refreshPalette();
@@ -188,13 +188,13 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
 
     public int[] getColors() { return colors; }
 
-    public int[] getSelectedColors() { return selectedColors; }
+    public boolean[] getSelectedColors() { return selectedColors; }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putIntArray(KEY_COLORS, colors);
-        outState.putIntArray(KEY_SELECTED_COLORS, selectedColors);
+        outState.putBooleanArray(KEY_SELECTED_COLORS, selectedColors);
         outState.putStringArray(KEY_COLOR_CONTENT_DESCRIPTIONS, colorContentDescriptions);
     }
 
