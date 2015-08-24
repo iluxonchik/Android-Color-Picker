@@ -9,7 +9,6 @@ import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 
-// TODO
 
 /**
  * Created by ILUXONCHIK on 21/08/2015.
@@ -27,7 +26,7 @@ public class ColorPickerPalette extends TableLayout{
     public ColorPickerPalette(Context context, AttributeSet attrs) { super(context, attrs); }
 
     /**
-     * Initialize color swatches size and palette's columns and listener. size should be a
+     * Initialize color swatches size and palette's columns and onColorSelectedListener. size should be a
      * pre-defined size (SIZE_LARGE or SIZE_SMALL) from ColorPuckerDialog.
      */
     public void init(int size, int numColumns, ColorPickerSwatch.OnColorSelectedListener listener) {
@@ -132,7 +131,7 @@ public class ColorPickerPalette extends TableLayout{
      * Creates a color swatch.
      */
     private ColorPickerSwatch createColorSwatch(int color, boolean isColorSelected) {
-        //  Pass the ColorPickerDialog (onColorSelectedListener) and register it as listener
+        //  Pass the ColorPickerDialog (onColorSelectedListener) and register it as onColorSelectedListener
         //      in ColorPickerSwatch, that way a click on the color circle will be
         //      sent to ColorPickerDialog.
         ColorPickerSwatch view = new ColorPickerSwatch(getContext(), color,

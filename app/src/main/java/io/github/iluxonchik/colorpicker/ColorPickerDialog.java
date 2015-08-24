@@ -6,17 +6,25 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.app.Dialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import java.util.HashMap;
+
 /**
  * A dialog which takes in a input an array of colors and creates a pallete allowing the user to
- * select one or more color swatches, which invokes a listener.
+ * select one or more color swatches, which invokes a onColorSelectedListener.
  *
  * Created by ILUXONCHIK on 21/08/2015.
  */
-public class ColorPickerDialog extends DialogFragment implements ColorPickerSwatch.OnColorSelectedListener{
+public class ColorPickerDialog extends DialogFragment implements ColorPickerSwatch.OnColorSelectedListener {
+
+    public interface OnOkCancelPressListener {
+        public void onColorPickerDialogOkPressed(boolean[] selectedColors);
+        public void onColorPickerDialogCancelPressed(boolean[] selectedColors);
+    }
 
     public static final int SIZE_LARGE = 1;
     public static final int SIZE_SMALL = 2;
@@ -29,6 +37,9 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     protected static final String KEY_SELECTED_COLORS = "selected_color";
     protected static final String KEY_NUM_COLUMNS = "columns";
     protected static final String KEY_SWATCH_SIZE = "size";
+    protected static final String KEY_INDEX_OF_COLOR = "indexOfColor";
+
+    protected String LOG_TAG = "io.github.iluxonchik.ColorPickerDialog";
 
     protected int titleResId = R.string.dialog_title;
     protected int[] colors = null; // colors to show in palette
@@ -36,14 +47,31 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     protected boolean[] selectedColors;
     protected int numColumns; // number of columns in palette
     protected int swatchSize; // used for circle height/width
+    protected HashMap<Integer, Integer> indexOfColor;
 
     protected boolean showOkCancelButtons = true; // TODO: do something with this later?
 
     private ColorPickerPalette palette;
     private ProgressBar progressBar;
 
-    // TODO: is this listener even need? Maybe use a listener from ColorPickerSwath
-    protected ColorPickerSwatch.OnColorSelectedListener listener;
+    protected ColorPickerSwatch.OnColorSelectedListener onColorSelectedListener;
+
+    protected OnOkCancelPressListener onOkCancelPressListener;
+
+    /**
+     * Creates a hashmap that maps the color to its position in the colors array.
+     */
+    protected Thread createColorToIndexMap = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            HashMap<Integer, Integer> hasMap = new HashMap<Integer, Integer>();
+            for (int i = 0; i < colors.length; i++) {
+                hasMap.put(colors[i], i);
+            }
+            indexOfColor = hasMap;
+            Log.d(LOG_TAG, "Finished hashmap building");
+        }
+    });
 
     public ColorPickerDialog() {
         // Empty constructor required for dialog fragments
@@ -53,25 +81,25 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     /**
      * Created a ColorDialog instance that allows multiple colors to be chosen.
      */
-    public static ColorPickerDialog newMultipleChoiceInstance(int titleResId, int[] colors, int selectedColors[],
+    public static ColorPickerDialog newMultipleChoiceInstance(int titleResId, int[] colors, boolean selectedColors[],
                                                               int columns, int size) {
-        // TODO
-        return null;
+        ColorPickerDialog colorPickerDialog = new ColorPickerDialog();
+        colorPickerDialog.initialize(titleResId, colors, selectedColors, columns, size);
+        return colorPickerDialog;
     }
 
     /**
      * Created a ColorDialog instance that allows a single to be chosen.
      */
-    public static ColorPickerDialog newSingleChoiceInstance(int titleResId, int[] colors, int selectedColor,
+    public static ColorPickerDialog newSingleChoiceInstance(int titleResId, int[] colors, boolean[] selectedColors,
                                                             int columns, int size) {
-
-        ColorPickerDialog colorPickerDialog = new ColorPickerDialog();
-
-        return colorPickerDialog;
+        // TODO
+        return null;
     }
 
     public void initialize(int titleResId, int[] colors, boolean[] selectedColors, int numColumns, int swatchSize) {
         setArguments(titleResId, numColumns, swatchSize);
+        createColorToIndexMap.start();
         setColors(colors, selectedColors);
     }
 
@@ -84,11 +112,16 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     }
 
     public void setOnColorSelectedListener(ColorPickerSwatch.OnColorSelectedListener listener) {
-        this.listener = listener;
+        this.onColorSelectedListener = listener;
+    }
+
+    public void setOnOkCancelPressListener(OnOkCancelPressListener onOkCancelPressListener) {
+        this.onOkCancelPressListener = onOkCancelPressListener;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             titleResId = getArguments().getInt(KEY_TITLE_ID);
             numColumns = getArguments().getInt(KEY_NUM_COLUMNS);
@@ -100,6 +133,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
             selectedColors = savedInstanceState.getBooleanArray(KEY_SELECTED_COLORS);
             colorContentDescriptions = savedInstanceState.getStringArray(
                     KEY_COLOR_CONTENT_DESCRIPTIONS);
+            indexOfColor = (HashMap<Integer, Integer>) savedInstanceState.getSerializable(KEY_INDEX_OF_COLOR);
         }
     }
 
@@ -125,13 +159,29 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
             alertDialogBuilder.setPositiveButton(R.string.dialog_positive_button_text, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    // TODO
+                    if (onOkCancelPressListener != null) {
+                        onOkCancelPressListener.onColorPickerDialogOkPressed(selectedColors);
+                    }
+
+                    if (getTargetFragment() instanceof OnOkCancelPressListener) {
+                        final OnOkCancelPressListener listener =
+                                (OnOkCancelPressListener) getTargetFragment();
+                        listener.onColorPickerDialogOkPressed(selectedColors);
+                    }
                 }
             })
              .setNegativeButton(R.string.dialog_negative_button_text, new DialogInterface.OnClickListener() {
                  @Override
                  public void onClick(DialogInterface dialog, int which) {
-                     // TODO
+                     if (onOkCancelPressListener != null) {
+                         onOkCancelPressListener.onColorPickerDialogCancelPressed(selectedColors);
+                     }
+
+                     if (getTargetFragment() instanceof OnOkCancelPressListener) {
+                         final OnOkCancelPressListener listener =
+                                 (OnOkCancelPressListener) getTargetFragment();
+                         listener.onColorPickerDialogCancelPressed(selectedColors);
+                     }
                  }
              });
         }
@@ -196,6 +246,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         outState.putIntArray(KEY_COLORS, colors);
         outState.putBooleanArray(KEY_SELECTED_COLORS, selectedColors);
         outState.putStringArray(KEY_COLOR_CONTENT_DESCRIPTIONS, colorContentDescriptions);
+        outState.putSerializable(KEY_INDEX_OF_COLOR, indexOfColor);
     }
 
     private void refreshPalette() {
@@ -210,5 +261,25 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         /* Have a boolean array (selected), where each index corresponds to the index in "colors"
          * and just flip the value in that color's position (?)
          */
+        int index;
+
+        if (indexOfColor == null) {
+            Log.d(LOG_TAG, "indexOfColor hashmap is null");
+            // TODO: this will block the Main thread
+            if (createColorToIndexMap.isAlive()) {
+                // If the thread is still running, wait for it to finish
+                try {
+                    createColorToIndexMap.join();
+                } catch (InterruptedException e) {
+                    // Try running the thread again
+                    createColorToIndexMap.start();
+                }
+            }
+        }
+        index = indexOfColor.get(color);
+        selectedColors[index] = !selectedColors[index];
+        palette.drawPalette(colors, selectedColors);
     }
+
+
 }

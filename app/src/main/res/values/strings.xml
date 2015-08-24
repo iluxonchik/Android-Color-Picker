@@ -4,4 +4,8 @@
     <string name="dialog_title">Select a Color</string>
     <string name="dialog_positive_button_text">Ok</string>
     <string name="dialog_negative_button_text">Cancel</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
 </resources>
