@@ -5,3 +5,7 @@
 .DS_Store
 /build
 /captures
+
+# ProjectSpecific
+\*Activity.java
+\activity_*
