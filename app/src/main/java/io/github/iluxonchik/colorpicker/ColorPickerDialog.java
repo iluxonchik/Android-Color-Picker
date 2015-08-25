@@ -11,6 +11,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -22,8 +24,8 @@ import java.util.HashMap;
 public class ColorPickerDialog extends DialogFragment implements ColorPickerSwatch.OnColorSelectedListener {
 
     public interface OnOkCancelPressListener {
-        public void onColorPickerDialogOkPressed(boolean[] selectedColors);
-        public void onColorPickerDialogCancelPressed(boolean[] selectedColors);
+        public void onColorPickerDialogOkPressed(int[] selectedColors);
+        public void onColorPickerDialogCancelPressed(int[] selectedColors);
     }
 
     public static final int SIZE_LARGE = 1;
@@ -47,7 +49,9 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     protected boolean[] selectedColors;
     protected int numColumns; // number of columns in palette
     protected int swatchSize; // used for circle height/width
+    protected boolean[] colorSelected;
     protected HashMap<Integer, Integer> indexOfColor;
+    protected int numSelectedColors;
 
     protected boolean showOkCancelButtons = true; // TODO: do something with this later?
 
@@ -58,21 +62,6 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
 
     protected OnOkCancelPressListener onOkCancelPressListener;
 
-    /**
-     * Creates a hashmap that maps the color to its position in the colors array.
-     */
-    protected Thread createColorToIndexMap = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            HashMap<Integer, Integer> hasMap = new HashMap<Integer, Integer>();
-            for (int i = 0; i < colors.length; i++) {
-                hasMap.put(colors[i], i);
-            }
-            indexOfColor = hasMap;
-            Log.d(LOG_TAG, "Finished hashmap building");
-        }
-    });
-
     public ColorPickerDialog() {
         // Empty constructor required for dialog fragments
     }
@@ -81,7 +70,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     /**
      * Created a ColorDialog instance that allows multiple colors to be chosen.
      */
-    public static ColorPickerDialog newMultipleChoiceInstance(int titleResId, int[] colors, boolean selectedColors[],
+    public static ColorPickerDialog newMultipleChoiceInstance(int titleResId, int[] colors, int[] selectedColors,
                                                               int columns, int size) {
         ColorPickerDialog colorPickerDialog = new ColorPickerDialog();
         colorPickerDialog.initialize(titleResId, colors, selectedColors, columns, size);
@@ -91,16 +80,16 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     /**
      * Created a ColorDialog instance that allows a single to be chosen.
      */
-    public static ColorPickerDialog newSingleChoiceInstance(int titleResId, int[] colors, boolean[] selectedColors,
+    public static ColorPickerDialog newSingleChoiceInstance(int titleResId, int[] colors, int[] selectedColors,
                                                             int columns, int size) {
         // TODO
         return null;
     }
 
-    public void initialize(int titleResId, int[] colors, boolean[] selectedColors, int numColumns, int swatchSize) {
+    public void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns, int swatchSize) {
         setArguments(titleResId, numColumns, swatchSize);
-        createColorToIndexMap.start();
-        setColors(colors, selectedColors);
+        initializeStateVars(selectedColors, colors);
+        setColors(colors, colorSelected);
     }
 
     public void setArguments(int titleResId, int numColumns, int swatchSize) {
@@ -160,13 +149,13 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     if (onOkCancelPressListener != null) {
-                        onOkCancelPressListener.onColorPickerDialogOkPressed(selectedColors);
+                        onOkCancelPressListener.onColorPickerDialogOkPressed(getCurrentlySelectedColors());
                     }
 
                     if (getTargetFragment() instanceof OnOkCancelPressListener) {
                         final OnOkCancelPressListener listener =
                                 (OnOkCancelPressListener) getTargetFragment();
-                        listener.onColorPickerDialogOkPressed(selectedColors);
+                        listener.onColorPickerDialogOkPressed(getCurrentlySelectedColors());
                     }
                 }
             })
@@ -174,13 +163,13 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
                  @Override
                  public void onClick(DialogInterface dialog, int which) {
                      if (onOkCancelPressListener != null) {
-                         onOkCancelPressListener.onColorPickerDialogCancelPressed(selectedColors);
+                         onOkCancelPressListener.onColorPickerDialogCancelPressed(getCurrentlySelectedColors());
                      }
 
                      if (getTargetFragment() instanceof OnOkCancelPressListener) {
                          final OnOkCancelPressListener listener =
                                  (OnOkCancelPressListener) getTargetFragment();
-                         listener.onColorPickerDialogCancelPressed(selectedColors);
+                         listener.onColorPickerDialogCancelPressed(getCurrentlySelectedColors());
                      }
                  }
              });
@@ -236,6 +225,34 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         }
     }
 
+
+    /**
+     * Creates a hashmap that maps the color to its position in the colors array and fills the
+     * colorSelected array.
+     */
+    private void initializeStateVars(int[] selectedColors, int[] colors) {
+        /* NOTE: be careful if you want to run this on a new thread. If the state vars are not
+         * initialized correctly, when a call to ".show()" is made, the dialog might exhibit
+         * erroneous behavior.
+         */
+        numSelectedColors = selectedColors.length;
+
+        HashMap<Integer, Integer> hasMap = new HashMap<Integer, Integer>();
+        for (int i = 0; i < colors.length; i++) {
+            hasMap.put(colors[i], i);
+        }
+        indexOfColor = hasMap;
+        Log.d(LOG_TAG, "Finished hashmap building");
+
+        colorSelected = new boolean[colors.length];
+       // Arrays.fill(colorSelected, false);
+
+        for (int color : selectedColors) {
+            colorSelected[indexOfColor.get(color)] = true;
+        }
+
+    }
+
     public int[] getColors() { return colors; }
 
     public boolean[] getSelectedColors() { return selectedColors; }
@@ -263,23 +280,44 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
          */
         int index;
 
-        if (indexOfColor == null) {
-            Log.d(LOG_TAG, "indexOfColor hashmap is null");
-            // TODO: this will block the Main thread
-            if (createColorToIndexMap.isAlive()) {
-                // If the thread is still running, wait for it to finish
-                try {
-                    createColorToIndexMap.join();
-                } catch (InterruptedException e) {
-                    // Try running the thread again
-                    createColorToIndexMap.start();
-                }
-            }
-        }
         index = indexOfColor.get(color);
-        selectedColors[index] = !selectedColors[index];
+        colorSelected[index] = !colorSelected[index];
+
+        if(colorSelected[index]) {
+            // New color was selected, increment the number of selected colors
+            numSelectedColors++;
+        } else {
+            // Color de-selected, decremented number of selected colors
+            numSelectedColors--;
+        }
+
         palette.drawPalette(colors, selectedColors);
     }
 
+    /**
+     * Get an array of currently selected colors.
+     */
+    public int[] getCurrentlySelectedColors() {
+
+        Log.e("MainActivity", "Error in color counting. Expected = " + numSelectedColors);
+
+        if (numSelectedColors < 1)
+            return null;
+
+        int[] currentlySelectedColors = new int[numSelectedColors];
+        int j =0;
+        for (int i = 0; i < colorSelected.length; i++) {
+            if (colorSelected[i]) {
+                currentlySelectedColors[j++] = colors[i];
+            }
+        }
+
+        if (currentlySelectedColors.length != numSelectedColors) {
+            Log.e("MainActivity", "Error in color counting. Expected = " + numSelectedColors +
+                    " Obtained = " + currentlySelectedColors.length);
+        }
+
+        return currentlySelectedColors;
+    }
 
 }
