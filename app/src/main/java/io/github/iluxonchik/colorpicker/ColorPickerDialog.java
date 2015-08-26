@@ -32,7 +32,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         private int titleResId = R.string.dialog_title;
         private int[] colors = new int[] {Color.RED, Color.GREEN, Color.BLUE};
         private String[] colorContentDescriptions = null; // TODO
-        private int[] selectedColors = null;
+        private int[] selectedColors = new int[0];
         private int numColumns = 5;
         private int swatchSize = ColorPickerDialog.SIZE_SMALL;
         private int maxSelectedColors = Integer.MAX_VALUE;
@@ -86,6 +86,9 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     protected static final String KEY_NUM_COLUMNS = "columns";
     protected static final String KEY_SWATCH_SIZE = "size";
     protected static final String KEY_INDEX_OF_COLOR = "indexOfColor";
+    protected static final String KEY_LAST_SELECTED_COLOR_INDEX = "lastSelectedColorIndex";
+    protected static final String KEY_NUM_SELECTED_COLORS = "numSelectedColors";
+
 
     protected String LOG_TAG = "io.github.iluxonchik.ColorPickerDialog";
 
@@ -98,6 +101,8 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     protected boolean[] colorSelected;
     protected HashMap<Integer, Integer> indexOfColor;
     protected int numSelectedColors;
+    protected int maxSelectedColors = Integer.MAX_VALUE;
+    protected int lastSelectedColorIndex; // index of the last selected color
 
     protected boolean showOkCancelButtons = true; // TODO: do something with this later?
 
@@ -116,7 +121,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     private static ColorPickerDialog newInstance(Builder builder) {
         ColorPickerDialog colorPickerDialog = new ColorPickerDialog();
         colorPickerDialog.initialize(builder.titleResId, builder.colors, builder.selectedColors,
-                builder.numColumns, builder.swatchSize);
+                builder.numColumns, builder.swatchSize, builder.maxSelectedColors);
         return colorPickerDialog;
     }
 
@@ -140,11 +145,19 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         return null;
     }
 
-    public void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns, int swatchSize) {
+    public void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns,
+                           int swatchSize, int maxSelectedColors) {
         setArguments(titleResId, numColumns, swatchSize);
         initializeStateVars(selectedColors, colors);
         setColors(colors, colorSelected);
+        this.maxSelectedColors = maxSelectedColors;
     }
+
+    public void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns,
+                           int swatchSize) {
+        initialize(titleResId, colors, selectedColors, numColumns, swatchSize, Integer.MAX_VALUE);
+    }
+
 
     public void setArguments(int titleResId, int numColumns, int swatchSize) {
         Bundle bundle = new Bundle();
@@ -177,6 +190,8 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
             colorContentDescriptions = savedInstanceState.getStringArray(
                     KEY_COLOR_CONTENT_DESCRIPTIONS);
             indexOfColor = (HashMap<Integer, Integer>) savedInstanceState.getSerializable(KEY_INDEX_OF_COLOR);
+            lastSelectedColorIndex = savedInstanceState.getInt(KEY_LAST_SELECTED_COLOR_INDEX);
+            numSelectedColors = savedInstanceState.getInt(KEY_NUM_SELECTED_COLORS);
         }
     }
 
@@ -305,6 +320,11 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
             colorSelected[indexOfColor.get(color)] = true;
         }
 
+        if(selectedColors.length > 0) {
+            // by default, use the first color from seleectedColors are the lastSelectedColorIndex
+            lastSelectedColorIndex = indexOfColor.get(selectedColors[0]);
+        }
+
     }
 
     public int[] getColors() { return colors; }
@@ -318,6 +338,8 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         outState.putBooleanArray(KEY_SELECTED_COLORS, colorSelected);
         outState.putStringArray(KEY_COLOR_CONTENT_DESCRIPTIONS, colorContentDescriptions);
         outState.putSerializable(KEY_INDEX_OF_COLOR, indexOfColor);
+        outState.putInt(KEY_LAST_SELECTED_COLOR_INDEX, lastSelectedColorIndex);
+        outState.putInt(KEY_NUM_SELECTED_COLORS, numSelectedColors);
     }
 
     private void refreshPalette() {
@@ -328,17 +350,23 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
 
     @Override
     public void onColorSelected(int color) {
-        // TODO
-        /* Have a boolean array (selected), where each index corresponds to the index in "colors"
-         * and just flip the value in that color's position (?)
-         */
         int index;
 
         index = indexOfColor.get(color);
+
+        if (numSelectedColors >= maxSelectedColors) {
+            // if max num of selected colors has been reached, de-select the last one
+            if (index != lastSelectedColorIndex && !colorSelected[index]) {
+                colorSelected[lastSelectedColorIndex] = false;
+                numSelectedColors--;
+            }
+        }
+
         colorSelected[index] = !colorSelected[index];
 
         if(colorSelected[index]) {
             // New color was selected, increment the number of selected colors
+            lastSelectedColorIndex = index;
             numSelectedColors++;
         } else {
             // Color de-selected, decremented number of selected colors
@@ -352,9 +380,6 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
      * Get an array of currently selected colors.
      */
     public int[] getCurrentlySelectedColors() {
-
-        Log.e("MainActivity", "Error in color counting. Expected = " + numSelectedColors);
-
         if (numSelectedColors < 1)
             return null;
 
