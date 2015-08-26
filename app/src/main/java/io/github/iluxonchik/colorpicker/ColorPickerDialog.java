@@ -88,6 +88,8 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     protected static final String KEY_INDEX_OF_COLOR = "indexOfColor";
     protected static final String KEY_LAST_SELECTED_COLOR_INDEX = "lastSelectedColorIndex";
     protected static final String KEY_NUM_SELECTED_COLORS = "numSelectedColors";
+    protected static final String KEY_MAX_SELECTED_COLORS = "maxSelectedColors";
+
 
 
     protected String LOG_TAG = "io.github.iluxonchik.ColorPickerDialog";
@@ -192,6 +194,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
             indexOfColor = (HashMap<Integer, Integer>) savedInstanceState.getSerializable(KEY_INDEX_OF_COLOR);
             lastSelectedColorIndex = savedInstanceState.getInt(KEY_LAST_SELECTED_COLOR_INDEX);
             numSelectedColors = savedInstanceState.getInt(KEY_NUM_SELECTED_COLORS);
+            maxSelectedColors = savedInstanceState.getInt(KEY_MAX_SELECTED_COLORS);
         }
     }
 
@@ -340,6 +343,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         outState.putSerializable(KEY_INDEX_OF_COLOR, indexOfColor);
         outState.putInt(KEY_LAST_SELECTED_COLOR_INDEX, lastSelectedColorIndex);
         outState.putInt(KEY_NUM_SELECTED_COLORS, numSelectedColors);
+        outState.putInt(KEY_MAX_SELECTED_COLORS, maxSelectedColors);
     }
 
     private void refreshPalette() {
@@ -372,7 +376,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
             // Color de-selected, decremented number of selected colors
             numSelectedColors--;
         }
-
+        
         palette.drawPalette(colors, colorSelected);
     }
 
