@@ -7,5 +7,5 @@
 /captures
 
 # ProjectSpecific
-\MainActivity.java
+\MainActivity*
 \activity_*
