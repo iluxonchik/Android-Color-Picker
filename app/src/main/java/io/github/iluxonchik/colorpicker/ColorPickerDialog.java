@@ -3,6 +3,7 @@ package io.github.iluxonchik.colorpicker;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -105,6 +106,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     protected int numSelectedColors;
     protected int maxSelectedColors = Integer.MAX_VALUE;
     protected int lastSelectedColorIndex; // index of the last selected color
+    protected boolean useMaterialDialog;
 
     protected boolean showOkCancelButtons = true; // TODO: do something with this later?
 
@@ -112,8 +114,37 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     private ProgressBar progressBar;
 
     protected ColorPickerSwatch.OnColorSelectedListener onColorSelectedListener;
-
     protected OnOkCancelPressListener onOkCancelPressListener;
+    protected DialogInterface.OnClickListener onOkPressedListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            if (onOkCancelPressListener != null) {
+                onOkCancelPressListener.onColorPickerDialogOkPressed(getCurrentlySelectedColors());
+            }
+
+            if (getTargetFragment() instanceof OnOkCancelPressListener) {
+                final OnOkCancelPressListener listener =
+                        (OnOkCancelPressListener) getTargetFragment();
+                listener.onColorPickerDialogOkPressed(getCurrentlySelectedColors());
+            }
+        }
+    };
+
+    protected DialogInterface.OnClickListener onCancelPressedListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            if (onOkCancelPressListener != null) {
+                onOkCancelPressListener.onColorPickerDialogCancelPressed(getCurrentlySelectedColors());
+            }
+
+            if (getTargetFragment() instanceof OnOkCancelPressListener) {
+                final OnOkCancelPressListener listener =
+                        (OnOkCancelPressListener) getTargetFragment();
+                listener.onColorPickerDialogCancelPressed(getCurrentlySelectedColors());
+            }
+        }
+    };
+
 
     public ColorPickerDialog() {
         // Empty constructor required for dialog fragments
@@ -124,6 +155,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         ColorPickerDialog colorPickerDialog = new ColorPickerDialog();
         colorPickerDialog.initialize(builder.titleResId, builder.colors, builder.selectedColors,
                 builder.numColumns, builder.swatchSize, builder.maxSelectedColors);
+        colorPickerDialog.setUseMaterialDialog(builder.useMaterial);
         return colorPickerDialog;
     }
 
@@ -211,46 +243,56 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
             showPaletteView();
         }
 
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity)
+        // TODO: This screams refactoring!
+        if (useMaterialDialog) {
+            return createMaterialDialog(activity, view);
+        }
+        else {
+            return createDefaultDialog(activity, view);
+        }
+    }
+
+    /**
+     * Creates a material dialog.
+     * @param context
+     * @param view dialog view
+     * @return
+     */
+    private android.support.v7.app.AlertDialog createMaterialDialog(Context context, View view) {
+        android.support.v7.app.AlertDialog.Builder alertDialogBuilder = new android.support.v7.app.
+                AlertDialog.Builder(context);
+        alertDialogBuilder
                 .setTitle(titleResId)
                 .setView(view);
 
         // Add positve and negative buttons to dialog, if needed
         if (showOkCancelButtons) {
-            alertDialogBuilder.setPositiveButton(R.string.dialog_positive_button_text, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    if (onOkCancelPressListener != null) {
-                        onOkCancelPressListener.onColorPickerDialogOkPressed(getCurrentlySelectedColors());
-                    }
-
-                    if (getTargetFragment() instanceof OnOkCancelPressListener) {
-                        final OnOkCancelPressListener listener =
-                                (OnOkCancelPressListener) getTargetFragment();
-                        listener.onColorPickerDialogOkPressed(getCurrentlySelectedColors());
-                    }
-                }
-            })
-             .setNegativeButton(R.string.dialog_negative_button_text, new DialogInterface.OnClickListener() {
-                 @Override
-                 public void onClick(DialogInterface dialog, int which) {
-                     if (onOkCancelPressListener != null) {
-                         onOkCancelPressListener.onColorPickerDialogCancelPressed(getCurrentlySelectedColors());
-                     }
-
-                     if (getTargetFragment() instanceof OnOkCancelPressListener) {
-                         final OnOkCancelPressListener listener =
-                                 (OnOkCancelPressListener) getTargetFragment();
-                         listener.onColorPickerDialogCancelPressed(getCurrentlySelectedColors());
-                     }
-                 }
-             });
+            alertDialogBuilder.setPositiveButton(R.string.dialog_positive_button_text, onOkPressedListener)
+                    .setNegativeButton(R.string.dialog_negative_button_text, onCancelPressedListener);
         }
 
-        alertDialog = alertDialogBuilder.create();
+        return alertDialogBuilder.create();
+    }
 
-        return alertDialog;
+    /**
+     * Creates a default dialog.
+     * @param context
+     * @param view dialog view
+     * @return
+     */
+    private AlertDialog createDefaultDialog(Context context, View view) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+        alertDialogBuilder
+                .setTitle(titleResId)
+                .setView(view);
 
+        // Add positve and negative buttons to dialog, if needed
+        if (showOkCancelButtons) {
+            alertDialogBuilder.setPositiveButton(R.string.dialog_positive_button_text, onOkPressedListener)
+                    .setNegativeButton(R.string.dialog_negative_button_text, onCancelPressedListener);
+        }
+
+        return alertDialogBuilder.create();
     }
 
     public void showPaletteView() {
@@ -376,7 +418,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
             // Color de-selected, decremented number of selected colors
             numSelectedColors--;
         }
-        
+
         palette.drawPalette(colors, colorSelected);
     }
 
@@ -401,6 +443,15 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         }
 
         return currentlySelectedColors;
+    }
+
+
+    public boolean isMaterialDialog() {
+        return useMaterialDialog;
+    }
+
+    protected void setUseMaterialDialog(boolean useMaterialDialog) {
+        this.useMaterialDialog = useMaterialDialog;
     }
 
 }
