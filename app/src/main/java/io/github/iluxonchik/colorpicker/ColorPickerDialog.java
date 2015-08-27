@@ -1,7 +1,6 @@
 package io.github.iluxonchik.colorpicker;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -12,9 +11,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ProgressBar;
-
-import java.lang.reflect.Array;
-import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -77,8 +73,6 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
 
     public static final int SIZE_LARGE = 1;
     public static final int SIZE_SMALL = 2;
-
-    protected AlertDialog alertDialog;
 
     protected static final String KEY_TITLE_ID = "title_id";
     protected static final String KEY_COLORS = "colors";
@@ -259,8 +253,8 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
      * @return
      */
     private android.support.v7.app.AlertDialog createMaterialDialog(Context context, View view) {
-        android.support.v7.app.AlertDialog.Builder alertDialogBuilder = new android.support.v7.app.
-                AlertDialog.Builder(context);
+        android.support.v7.app.AlertDialog.Builder alertDialogBuilder =
+                new android.support.v7.app.AlertDialog.Builder(context);
         alertDialogBuilder
                 .setTitle(titleResId)
                 .setView(view);
@@ -280,8 +274,9 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
      * @param view dialog view
      * @return
      */
-    private AlertDialog createDefaultDialog(Context context, View view) {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+    private android.app.AlertDialog createDefaultDialog(Context context, View view) {
+        android.app.AlertDialog.Builder alertDialogBuilder =
+                new android.app.AlertDialog.Builder(context);
         alertDialogBuilder
                 .setTitle(titleResId)
                 .setView(view);
