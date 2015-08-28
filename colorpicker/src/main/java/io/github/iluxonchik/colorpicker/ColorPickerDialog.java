@@ -15,9 +15,7 @@ import java.util.HashMap;
 
 /**
  * A dialog which takes in a input an array of colors and creates a pallete allowing the user to
- * select one or more color swatches, which invokes a onColorSelectedListener.
- *
- * Created by ILUXONCHIK on 21/08/2015.
+ * select one or more color swatches. There are two versions of the dialog: material and default.
  */
 public class ColorPickerDialog extends DialogFragment implements ColorPickerSwatch.OnColorSelectedListener {
 
@@ -67,8 +65,8 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     }
 
     public interface OnOkCancelPressListener {
-        public void onColorPickerDialogOkPressed(int[] selectedColors);
-        public void onColorPickerDialogCancelPressed(int[] selectedColors);
+        void onColorPickerDialogOkPressed(int[] selectedColors);
+        void onColorPickerDialogCancelPressed(int[] selectedColors);
     }
 
     public static final int SIZE_LARGE = 1;
@@ -175,10 +173,10 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
 
     public void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns,
                            int swatchSize, int maxSelectedColors) {
+        this.maxSelectedColors = maxSelectedColors;
         setArguments(titleResId, numColumns, swatchSize);
         initializeStateVars(selectedColors, colors);
         setColors(colors, colorSelected);
-        this.maxSelectedColors = maxSelectedColors;
     }
 
     public void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns,
