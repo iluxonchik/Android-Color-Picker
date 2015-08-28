@@ -21,7 +21,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
 
     public static class Builder {
 
-        private final String NON_POSITVE_NUM_MSG = "Argument must be greater than zero";
+        private final String NON_POSITIVE_NUM_MSG = "Argument must be greater than zero";
 
         // Optional parameters, initialized to default values
         private int titleResId = R.string.dialog_title;
@@ -35,25 +35,85 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
 
         public Builder() { }
 
+        /**
+         * Set the title using the given resource id. Default value is "Select a Color".
+         *
+         * @return This Builder object to allow for chaining of calls to set methods
+         */
         public Builder titleResId(int value) {this.titleResId = value; return this; }
+
+        /**
+         * Set the color array to be displayed in the palette.
+         *
+         * @return This Builder object to allow for chaining of calls to set methods
+         */
         public Builder colors(int[] value) {this.colors = value; return this; }
+
+        /**
+         * Set which colors are selected in a palette. Assumes that there are no duplicate colors.
+         *
+         * @return This Builder object to allow for chaining of calls to set methods
+         */
         public Builder selectedColors(int[] value) {
             this.selectedColors = value;
             return this;
         }
+
+        /**
+         * Sets the number of columns in the palette.
+         *
+         * @return This Builder object to allow for chaining of calls to set methods
+         */
         public Builder numColumns(int value) { this.numColumns = value; return this; }
+
+        /**
+         *  Sets the size of the color swatch. Size should be a pre-defined size (SIZE_LARGE
+         * or SIZE_SMALL) from ColorPickerDialogFragment.
+         *
+         * @return This Builder object to allow for chaining of calls to set methods
+         */
         public Builder swatchSize(int value) {
-            positiveIntegerCheck(value, NON_POSITVE_NUM_MSG);
+            positiveIntegerCheck(value, NON_POSITIVE_NUM_MSG);
             this.swatchSize = value;
             return this;
         }
+
+        /**
+         * Sets the maximum possible number of selected colors in the palette. The user can select
+         * less, but no more than the specified value. If the user tries to select more colors than
+         * this value, a color will be de-selected before selecting the one pressed by the user,
+         * according to the following rules:
+         *
+         * 1. If it's the first color to be selected since the dialog instantiation, the first color
+         * in the selected colors array will be de-selected.
+         * 2. If it's not the first color to be selected sine the dialog instantiation, the last
+         * selected color will be de-selected.
+         *
+         * If no parameter is specified, the default value 1 is used, which represents a dialog,
+         * where the user can select a single color. The parameter must be greater than zero.
+         *
+         * @return This Builder object to allow for chaining of calls to set methods
+         */
         public Builder maxSelectedColors(int value) {
-            positiveIntegerCheck(value, NON_POSITVE_NUM_MSG);
+            positiveIntegerCheck(value, NON_POSITIVE_NUM_MSG);
             this.maxSelectedColors = value;
             return this;
         }
+
+        /**
+         * Sets whether do or not force the material dialog design. If this value is set to true,
+         * android.support.v7.app.AlertDialog is used, otherwise android.app.AlertDialog is.
+         *
+         * @return This Builder object to allow for chaining of calls to set methods
+         */
         public Builder useMaterial(boolean value) { this.useMaterial = value; return this; }
 
+        /**
+         * Sets the content descriptions for the color swatches. Each item at the index i will be
+         * attributed to the swatch with color at the portion i in the provided colors array.
+         *
+         * @return This Builder object to allow for chaining of calls to set methods
+         */
         public Builder colorContentDescriptions(String[] value) {
             this.colorContentDescriptions = value;
             return this;
@@ -165,7 +225,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     }
 
 
-    public void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns,
+    private void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns,
                            int swatchSize, int maxSelectedColors, String[] colorContentDescriptions) {
         this.maxSelectedColors = maxSelectedColors;
         this.colorContentDescriptions = colorContentDescriptions;
@@ -174,14 +234,14 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         setColors(colors, colorSelected);
     }
 
-    public void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns,
+    private void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns,
                            int swatchSize) {
         initialize(titleResId, colors, selectedColors, numColumns, swatchSize, Integer.MAX_VALUE,
                 null);
     }
 
 
-    public void setArguments(int titleResId, int numColumns, int swatchSize) {
+    private void setArguments(int titleResId, int numColumns, int swatchSize) {
         Bundle bundle = new Bundle();
         bundle.putInt(KEY_TITLE_ID, titleResId);
         bundle.putInt(KEY_NUM_COLUMNS, numColumns);
@@ -284,6 +344,9 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         return alertDialogBuilder.create();
     }
 
+    /**
+     * Hide the progressbar and show the palette.
+     */
     public void showPaletteView() {
         if (progressBar != null && palette != null) {
             progressBar.setVisibility(View.GONE);
@@ -292,6 +355,9 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         }
     }
 
+    /**
+     * Hide the palette and show the progressbar.
+     */
     public void showProgressBarView() {
         if (progressBar != null && palette != null) {
             progressBar.setVisibility(View.VISIBLE);
@@ -299,6 +365,12 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         }
     }
 
+    /**
+     * Set the colors to display in the palette. Causes the palette to refresh.
+     *
+     * @param colors colors to display in the palette
+     * @param selectedColors selected colors in the palette
+     */
     public void setColors(int[] colors, boolean[] selectedColors) {
         if (this.colors != colors || this.colorSelected != selectedColors) {
             this.colors = colors;
@@ -307,6 +379,11 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         }
     }
 
+    /**
+     * Set the colors to display in the palette. Causes the palette to refresh.
+     *
+     * @param colors colors to display in the palette
+     */
     public void setColors(int[] colors) {
         if (this.colors != colors) {
             this.colors = colors;
@@ -314,6 +391,11 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         }
     }
 
+    /**
+     * Set the selected colors in the palette. Causes the palette to refersh.
+     *
+     * @param selectedColors selected colors in the platte.
+     */
     public void setKeySelectedColors(boolean[] selectedColors) {
         if(this.colorSelected != selectedColors) {
             this.colorSelected = selectedColors;
@@ -321,6 +403,12 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         }
     }
 
+    /**
+     * Sets the content descriptions for the color swatches. Each item at the index i will be
+     * attributed to the swatch with color at the portion i in the provided colors array.
+     *
+     * @param contentDescriptions content descriptions of color swatches
+     */
     public void setKeyColorContentDescriptions(String[] contentDescriptions) {
         if (this.colorContentDescriptions != contentDescriptions) {
             this.colorContentDescriptions = contentDescriptions;
@@ -434,13 +522,10 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         return currentlySelectedColors;
     }
 
-    public void setColorContentDescriptions(String[] colorContentDescriptions) {
-        if (this.colorContentDescriptions != colorContentDescriptions) {
-            this.colorContentDescriptions = colorContentDescriptions;
-        }
-        refreshPalette();
-    }
-
+    /**
+     *
+     * @return whether the use of material dialog is forced or not
+     */
     public boolean isMaterialDialog() {
         return useMaterialDialog;
     }
