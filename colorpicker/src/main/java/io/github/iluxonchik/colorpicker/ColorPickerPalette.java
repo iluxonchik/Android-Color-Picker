@@ -17,6 +17,9 @@ public class ColorPickerPalette extends TableLayout{
 
     public ColorPickerSwatch.OnColorSelectedListener onColorSelectedListener;
 
+    private String description;
+    private String descriptionSelected;
+
     private int swatchLength;
     private int marginSize;
     private int numColumns;

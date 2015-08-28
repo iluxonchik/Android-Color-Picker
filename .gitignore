@@ -5,7 +5,3 @@
 .DS_Store
 /build
 /captures
-
-# ProjectSpecific
-\MainActivity*
-\activity_*

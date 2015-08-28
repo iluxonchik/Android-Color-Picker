@@ -1,4 +1,4 @@
-package io.github.iluxonchik.colorpicker;
+package io.github.iluxonchik.colorpickerdemo;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

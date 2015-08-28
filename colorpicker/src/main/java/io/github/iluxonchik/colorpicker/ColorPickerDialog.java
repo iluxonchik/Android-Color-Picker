@@ -54,6 +54,11 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         }
         public Builder useMaterial(boolean value) { this.useMaterial = value; return this; }
 
+        public Builder colorContentDescriptions(String[] value) {
+            this.colorContentDescriptions = value;
+            return this;
+        }
+
         public ColorPickerDialog build() {return ColorPickerDialog.newInstance(this);}
 
         private void positiveIntegerCheck(int number, String message) {
@@ -107,6 +112,10 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
 
     protected ColorPickerSwatch.OnColorSelectedListener onColorSelectedListener;
     protected OnOkCancelPressListener onOkCancelPressListener;
+
+    /**
+     * Listener for "Ok" button press on the dialog
+     */
     protected DialogInterface.OnClickListener onOkPressedListener = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
@@ -122,6 +131,9 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         }
     };
 
+    /**
+     * Listener for "Cancel" button press on the dialog
+     */
     protected DialogInterface.OnClickListener onCancelPressedListener = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
@@ -438,6 +450,12 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         return currentlySelectedColors;
     }
 
+    public void setColorContentDescriptions(String[] colorContentDescriptions) {
+        if (this.colorContentDescriptions != colorContentDescriptions) {
+            this.colorContentDescriptions = colorContentDescriptions;
+        }
+        refreshPalette();
+    }
 
     public boolean isMaterialDialog() {
         return useMaterialDialog;
