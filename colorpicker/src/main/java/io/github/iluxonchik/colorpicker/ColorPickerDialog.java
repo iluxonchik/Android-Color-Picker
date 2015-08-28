@@ -26,11 +26,11 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         // Optional parameters, initialized to default values
         private int titleResId = R.string.dialog_title;
         private int[] colors = new int[] {Color.RED, Color.GREEN, Color.BLUE};
-        private String[] colorContentDescriptions = null; // TODO
+        private String[] colorContentDescriptions = null;
         private int[] selectedColors = new int[0];
         private int numColumns = 5;
         private int swatchSize = ColorPickerDialog.SIZE_SMALL;
-        private int maxSelectedColors = Integer.MAX_VALUE;
+        private int maxSelectedColors = 1;
         private boolean useMaterial = false;
 
         public Builder() { }
@@ -79,7 +79,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
 
     protected static final String KEY_TITLE_ID = "title_id";
     protected static final String KEY_COLORS = "colors";
-    protected static final String KEY_COLOR_CONTENT_DESCRIPTIONS = "color_content_descriptions"; // TODO
+    protected static final String KEY_COLOR_CONTENT_DESCRIPTIONS = "color_content_descriptions";
     protected static final String KEY_SELECTED_COLORS = "selected_color";
     protected static final String KEY_NUM_COLUMNS = "columns";
     protected static final String KEY_SWATCH_SIZE = "size";
@@ -94,7 +94,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
 
     protected int titleResId = R.string.dialog_title;
     protected int[] colors = null; // colors to show in palette
-    protected String[] colorContentDescriptions = null; // TODO
+    protected String[] colorContentDescriptions = null;
     protected int[] selectedColors;
     protected int numColumns; // number of columns in palette
     protected int swatchSize; // used for circle height/width
@@ -158,34 +158,17 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     private static ColorPickerDialog newInstance(Builder builder) {
         ColorPickerDialog colorPickerDialog = new ColorPickerDialog();
         colorPickerDialog.initialize(builder.titleResId, builder.colors, builder.selectedColors,
-                builder.numColumns, builder.swatchSize, builder.maxSelectedColors);
+                builder.numColumns, builder.swatchSize, builder.maxSelectedColors,
+                builder.colorContentDescriptions);
         colorPickerDialog.setUseMaterialDialog(builder.useMaterial);
         return colorPickerDialog;
     }
 
 
-    /**
-     * Created a ColorDialog instance that allows multiple colors to be chosen.
-     */
-    private static ColorPickerDialog newMultipleChoiceInstance(int titleResId, int[] colors, int[] selectedColors,
-                                                              int columns, int size) {
-        ColorPickerDialog colorPickerDialog = new ColorPickerDialog();
-        colorPickerDialog.initialize(titleResId, colors, selectedColors, columns, size);
-        return colorPickerDialog;
-    }
-
-    /**
-     * Created a ColorDialog instance that allows a single to be chosen.
-     */
-    private static ColorPickerDialog newSingleChoiceInstance(int titleResId, int[] colors, int[] selectedColors,
-                                                            int columns, int size) {
-        // TODO
-        return null;
-    }
-
     public void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns,
-                           int swatchSize, int maxSelectedColors) {
+                           int swatchSize, int maxSelectedColors, String[] colorContentDescriptions) {
         this.maxSelectedColors = maxSelectedColors;
+        this.colorContentDescriptions = colorContentDescriptions;
         setArguments(titleResId, numColumns, swatchSize);
         initializeStateVars(selectedColors, colors);
         setColors(colors, colorSelected);
@@ -193,7 +176,8 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
 
     public void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns,
                            int swatchSize) {
-        initialize(titleResId, colors, selectedColors, numColumns, swatchSize, Integer.MAX_VALUE);
+        initialize(titleResId, colors, selectedColors, numColumns, swatchSize, Integer.MAX_VALUE,
+                null);
     }
 
 

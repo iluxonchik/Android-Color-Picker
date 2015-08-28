@@ -3,6 +3,7 @@ package io.github.iluxonchik.colorpicker;
 import android.content.Context;
 import android.content.res.Resources;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -11,7 +12,7 @@ import android.widget.TableRow;
 
 
 /**
- * Created by ILUXONCHIK on 21/08/2015.
+ * Palette that contains the colors.
  */
 public class ColorPickerPalette extends TableLayout{
 
@@ -42,8 +43,10 @@ public class ColorPickerPalette extends TableLayout{
             swatchLength = res.getDimensionPixelSize(R.dimen.color_swatch_small);
             marginSize = res.getDimensionPixelSize(R.dimen.color_swatch_margin_small);
         }
-
         this.onColorSelectedListener = listener;
+
+        description = res.getString(R.string.color_swatch_description);
+        descriptionSelected = res.getString(R.string.color_swatch_description_selected);
     }
 
     /**
@@ -84,7 +87,8 @@ public class ColorPickerPalette extends TableLayout{
         for (int i = 0; i < colors.length; i++) {
             color = colors[i];
             View colorSwatch = createColorSwatch(color, selectedColors[i]);
-            // TODO setSwatchDescription()
+            setSwatchDescription(rowNumber, tableElements, rowElements, selectedColors[i],
+                    colorSwatch, colorContentDescriptions);
             addSwatchToRow(row, colorSwatch, rowNumber);
 
             tableElements++;
@@ -107,6 +111,49 @@ public class ColorPickerPalette extends TableLayout{
             }
             addView(row);
         }
+    }
+
+    /**
+     * Add a content description to the specified swatch view. Because the colors get added in a
+     * snaking form, every other row will need to compensate for the fact that the colors are added
+     * in an opposite direction from their left->right/top->bottom order, which is how the system
+     * will arrange them for accessibility purposes.
+     *
+     * @param rowNumber row in which the descriptions will be added
+     * @param index index of the swatch to which the description will be added to (number of
+     *              swatches so far in the palette - 1)
+     * @param rowElements number of elements in the row so far
+     * @param selected indicates whether the current swatch is selected
+     * @param swatch the swtach to which the description will be added
+     * @param contentDescriptions
+     */
+    private void setSwatchDescription(int rowNumber, int index, int rowElements, boolean selected,
+                                      View swatch, String[] contentDescriptions) {
+        String description;
+        if (contentDescriptions != null && contentDescriptions.length > index){
+            // If descriptions are provided, use them
+            description = contentDescriptions[index];
+        } else {
+            // If the descriptions are not provided, generate them
+            int accessibilityIndex;
+
+            if(rowNumber %2 == 0) {
+                // We're in a regular-ordered row
+                accessibilityIndex = index + 1;
+            } else {
+                // We're in a backwards-ordered row
+                int rowMax = ((rowNumber + 1) * numColumns); // maximum possible index
+                accessibilityIndex = rowMax - rowElements;
+            }
+
+            if (selected) {
+                description = String.format(this.descriptionSelected, accessibilityIndex);
+            } else {
+                description = String.format(this.description, accessibilityIndex);
+            }
+            swatch.setContentDescription(description);
+        }
+
     }
 
     /**

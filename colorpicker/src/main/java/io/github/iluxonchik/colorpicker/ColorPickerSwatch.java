@@ -20,7 +20,7 @@ public class ColorPickerSwatch extends FrameLayout implements View.OnClickListen
      * Interface for a callback when a color circle is selected
      */
     public interface OnColorSelectedListener {
-        public void onColorSelected(int color);
+        void onColorSelected(int color);
     }
 
     public ColorPickerSwatch(Context context, int color, boolean checked,
