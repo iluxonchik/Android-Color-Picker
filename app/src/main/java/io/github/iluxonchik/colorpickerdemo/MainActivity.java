@@ -48,8 +48,11 @@ public class MainActivity extends AppCompatActivity {
             }
         } else {
 
-            ColorPickerDialog colorPickerDialog = new ColorPickerDialog.Builder().maxSelectedColors(2).
-                    useMaterial(true).build();
+            ColorPickerDialog colorPickerDialog = new ColorPickerDialog.Builder()
+                    .maxSelectedColors(2)
+                    .useMaterial(true)
+                    .colorContentDescriptions(new String[] {"Hello", "World"})
+                    .build();
             colorPickerDialog.show(getFragmentManager(), "cal");
 
             colorPickerDialog.setOnOkCancelPressListener(new ColorPickerDialog.OnOkCancelPressListener() {

@@ -24,6 +24,7 @@ public class ColorPickerPalette extends TableLayout{
     private int swatchLength;
     private int marginSize;
     private int numColumns;
+    private boolean useDefaultColorContentDescriptions;
 
     public ColorPickerPalette(Context context) { super(context); }
 
@@ -65,13 +66,14 @@ public class ColorPickerPalette extends TableLayout{
      * Adds swatched to table in a serpentine format.
      */
     public void drawPalette(int[] colors, boolean[] selectedColors) {
-        drawPalette(colors, selectedColors, null);
+        drawPalette(colors, selectedColors, null, true);
     }
 
     /**
-     * Adds swatched to table in a serpentine format.
+     * Adds swatches to table in a serpentine format.
      */
-    public void drawPalette(int[] colors, boolean[] selectedColors, String[] colorContentDescriptions) {
+    public void drawPalette(int[] colors, boolean[] selectedColors,
+                            String[] colorContentDescriptions, boolean useDefaultColorContentDesc) {
         if (colors == null) {
             return;
         }
@@ -80,6 +82,7 @@ public class ColorPickerPalette extends TableLayout{
         int tableElements = 0;
         int rowElements = 0;
         int rowNumber = 0;
+        this.useDefaultColorContentDescriptions = useDefaultColorContentDesc;
 
         // Fill the table with swatches based on the colors array
         TableRow row = createTableRow();
@@ -95,7 +98,7 @@ public class ColorPickerPalette extends TableLayout{
             rowElements++;
 
             if(rowElements == numColumns) {
-                // if num of elems in the row matches the num of columns, pass to the next row
+                // if num of elements in the row matches the num of columns, pass to the next row
                 addView(row);
                 row = createTableRow();
                 rowElements = 0;
@@ -124,35 +127,52 @@ public class ColorPickerPalette extends TableLayout{
      *              swatches so far in the palette - 1)
      * @param rowElements number of elements in the row so far
      * @param selected indicates whether the current swatch is selected
-     * @param swatch the swtach to which the description will be added
-     * @param contentDescriptions
+     * @param swatch the swatch to which the description will be added
+     * @param contentDescriptions color content descriptions
      */
     private void setSwatchDescription(int rowNumber, int index, int rowElements, boolean selected,
                                       View swatch, String[] contentDescriptions) {
-        String description;
+        String description = null;
         if (contentDescriptions != null && contentDescriptions.length > index){
             // If descriptions are provided, use them
             description = contentDescriptions[index];
         } else {
             // If the descriptions are not provided, generate them
-            int accessibilityIndex;
+            if (useDefaultColorContentDescriptions) {
+                // Only generate descriptions if it's needed
+                int accessibilityIndex;
 
-            if(rowNumber %2 == 0) {
-                // We're in a regular-ordered row
-                accessibilityIndex = index + 1;
-            } else {
-                // We're in a backwards-ordered row
-                int rowMax = ((rowNumber + 1) * numColumns); // maximum possible index
-                accessibilityIndex = rowMax - rowElements;
-            }
+                if (rowNumber % 2 == 0) {
+                    // We're in a regular-ordered row
+                    accessibilityIndex = index + 1;
+                } else {
+                    // We're in a backwards-ordered row
+                    int rowMax = ((rowNumber + 1) * numColumns); // maximum possible index
+                    accessibilityIndex = rowMax - rowElements;
+                }
 
-            if (selected) {
-                description = String.format(this.descriptionSelected, accessibilityIndex);
-            } else {
-                description = String.format(this.description, accessibilityIndex);
+                if (selected) {
+                    description = String.format(this.descriptionSelected, accessibilityIndex);
+                } else {
+                    description = String.format(this.description, accessibilityIndex);
+                }
             }
+        }
+
+        if (description != null) {
+            Log.d("DESC", description);
             swatch.setContentDescription(description);
         }
+
+        /*
+            NOTE: an alternative design would be to use an interface to simulate a function
+            pointer (that would remove the nested "if" in the "else"), but that would add complexity
+            and since the task in question is simple and the cost is a boolean test, I decided to
+            stick with this solution (not to mention that the alternative method would require
+            object instantiations, which puts in question the performance gains). If more options
+            to the setSwatchDescription are added, then the alternative solution should be
+            re-considered, since it might improve code readability.
+         */
 
     }
 

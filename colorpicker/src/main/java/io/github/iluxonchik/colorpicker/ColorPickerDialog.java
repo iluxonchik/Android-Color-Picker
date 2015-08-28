@@ -32,6 +32,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         private int swatchSize = ColorPickerDialog.SIZE_SMALL;
         private int maxSelectedColors = 1;
         private boolean useMaterial = false;
+        private boolean useDefaultColorContentDescriptions = true;
 
         public Builder() { }
 
@@ -119,6 +120,30 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
             return this;
         }
 
+        /**
+         * Sets weather to use the default color content descriptions. The default description
+         * consists of the following string: "Color [index]", where [index] is the accessibility
+         * index of the color swatch.
+         *
+         * Default content descriptions can be mixed with custom ones
+         * specified using the {@link #colorContentDescriptions(String[])} colorContentDescriptions}
+         * method. For examples, if the colors array has 10 colors, and the colorContentDescriptions
+         * array has 7 elements in it, then colors in the colors array with indices 0 through 6 will
+         * have the corresponding descriptions from the colorContentDescriptions array and colors
+         * with indices 7 though 9 will have the default ones.
+         *
+         * @return This Builder object to allow for chaining of calls to set methods
+         */
+        public Builder useDefaultColorContentDescriptions(boolean useDefaultColorContentDescriptions) {
+            this.useDefaultColorContentDescriptions = useDefaultColorContentDescriptions;
+            return this;
+        }
+
+        /**
+         * Builds the ColorPickerDialog.
+         *
+         * @return color picker dialog
+         */
         public ColorPickerDialog build() {return ColorPickerDialog.newInstance(this);}
 
         private void positiveIntegerCheck(int number, String message) {
@@ -147,6 +172,8 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     protected static final String KEY_LAST_SELECTED_COLOR_INDEX = "lastSelectedColorIndex";
     protected static final String KEY_NUM_SELECTED_COLORS = "numSelectedColors";
     protected static final String KEY_MAX_SELECTED_COLORS = "maxSelectedColors";
+    protected static final String KEY_USE_DEFAULT_DESC = "useDefaultColorContentDescriptions";
+    protected static final String KEY_USE_MATERIAL = "useMaterialDialog";
 
 
 
@@ -164,6 +191,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     protected int maxSelectedColors = Integer.MAX_VALUE;
     protected int lastSelectedColorIndex; // index of the last selected color
     protected boolean useMaterialDialog;
+    protected boolean useDefaultColorContentDescriptions = true;
 
     protected boolean showOkCancelButtons = true; // TODO: do something with this later?
 
@@ -219,16 +247,18 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         ColorPickerDialog colorPickerDialog = new ColorPickerDialog();
         colorPickerDialog.initialize(builder.titleResId, builder.colors, builder.selectedColors,
                 builder.numColumns, builder.swatchSize, builder.maxSelectedColors,
-                builder.colorContentDescriptions);
+                builder.colorContentDescriptions, builder.useDefaultColorContentDescriptions);
         colorPickerDialog.setUseMaterialDialog(builder.useMaterial);
         return colorPickerDialog;
     }
 
 
     private void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns,
-                           int swatchSize, int maxSelectedColors, String[] colorContentDescriptions) {
+                           int swatchSize, int maxSelectedColors, String[] colorContentDescriptions,
+                            boolean useDefaultColorContentDescriptions) {
         this.maxSelectedColors = maxSelectedColors;
         this.colorContentDescriptions = colorContentDescriptions;
+        this.useDefaultColorContentDescriptions = useDefaultColorContentDescriptions;
         setArguments(titleResId, numColumns, swatchSize);
         initializeStateVars(selectedColors, colors);
         setColors(colors, colorSelected);
@@ -237,7 +267,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     private void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns,
                            int swatchSize) {
         initialize(titleResId, colors, selectedColors, numColumns, swatchSize, Integer.MAX_VALUE,
-                null);
+                null, true);
     }
 
 
@@ -271,10 +301,14 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
             colorSelected = savedInstanceState.getBooleanArray(KEY_SELECTED_COLORS);
             colorContentDescriptions = savedInstanceState.getStringArray(
                     KEY_COLOR_CONTENT_DESCRIPTIONS);
-            indexOfColor = (HashMap<Integer, Integer>) savedInstanceState.getSerializable(KEY_INDEX_OF_COLOR);
+            indexOfColor = (HashMap<Integer, Integer>)
+                    savedInstanceState.getSerializable(KEY_INDEX_OF_COLOR);
             lastSelectedColorIndex = savedInstanceState.getInt(KEY_LAST_SELECTED_COLOR_INDEX);
             numSelectedColors = savedInstanceState.getInt(KEY_NUM_SELECTED_COLORS);
             maxSelectedColors = savedInstanceState.getInt(KEY_MAX_SELECTED_COLORS);
+            useDefaultColorContentDescriptions = savedInstanceState
+                    .getBoolean(KEY_USE_DEFAULT_DESC);
+            useMaterialDialog = savedInstanceState.getBoolean(KEY_USE_MATERIAL);
         }
     }
 
@@ -433,8 +467,6 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
             hasMap.put(colors[i], i);
         }
         indexOfColor = hasMap;
-        Log.d(LOG_TAG, "Finished hashmap building");
-
         colorSelected = new boolean[colors.length];
        // Arrays.fill(colorSelected, false);
 
@@ -443,7 +475,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         }
 
         if(selectedColors.length > 0) {
-            // by default, use the first color from seleectedColors are the lastSelectedColorIndex
+            // by default, use the first color from selectedColors are the lastSelectedColorIndex
             lastSelectedColorIndex = indexOfColor.get(selectedColors[0]);
         }
 
@@ -463,11 +495,14 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         outState.putInt(KEY_LAST_SELECTED_COLOR_INDEX, lastSelectedColorIndex);
         outState.putInt(KEY_NUM_SELECTED_COLORS, numSelectedColors);
         outState.putInt(KEY_MAX_SELECTED_COLORS, maxSelectedColors);
+        outState.putBoolean(KEY_USE_DEFAULT_DESC, useDefaultColorContentDescriptions);
+        outState.putBoolean(KEY_USE_MATERIAL, useMaterialDialog);
     }
 
     private void refreshPalette() {
         if (palette != null && colors != null) {
-            palette.drawPalette(colors, colorSelected, colorContentDescriptions);
+            palette.drawPalette(colors, colorSelected,
+                    colorContentDescriptions, useDefaultColorContentDescriptions);
         }
     }
 
