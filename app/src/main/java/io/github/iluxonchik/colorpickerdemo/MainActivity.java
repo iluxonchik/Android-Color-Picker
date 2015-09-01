@@ -15,63 +15,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final int[] colors = new int[4];
-        colors[0] = Color.BLACK;
-        colors[1] = Color.BLUE;
-        colors[2] = Color.GRAY;
-        colors[3] = Color.CYAN;
 
         int[] selected = new int[2];
         selected[0] = Color.BLACK;
         selected[1] = Color.CYAN;
 
+        int[] colors = new int[] {Color.RED, Color.GREEN, Color.BLUE, Color.GRAY, Color.YELLOW};
 
-        if (savedInstanceState != null) {
-            Log.d("MainActivity", "SavedInstaceState not null!");
-            ColorPickerDialog colorPickerDialog =
-                    (ColorPickerDialog) getFragmentManager().findFragmentByTag("cal");
-            if (colorPickerDialog != null) {
-                colorPickerDialog.setOnOkCancelPressListener(new ColorPickerDialog.OnOkCancelPressListener() {
-                    @Override
-                    public void onColorPickerDialogOkPressed(int[] selectedColors) {
-                        Log.d("MainActivity", "Okay " + selectedColors.length);
-                        for (int color : selectedColors) {
-                            Log.d("MainActivity", Integer.toString(color));
-                        }
-                    }
-
-                    @Override
-                    public void onColorPickerDialogCancelPressed(int[] selectedColors) {
-                        Log.d("MainActivity", "Cancel");
-                    }
-                });
-            }
-        } else {
-
-            ColorPickerDialog colorPickerDialog = new ColorPickerDialog.Builder()
-                    .maxSelectedColors(2)
-                    .useMaterial(true)
-                    .colorContentDescriptions(new String[] {"Hello", "World"})
-                    .build();
-            colorPickerDialog.show(getFragmentManager(), "cal");
-
-            colorPickerDialog.setOnOkCancelPressListener(new ColorPickerDialog.OnOkCancelPressListener() {
-                @Override
-                public void onColorPickerDialogOkPressed(int[] selectedColors) {
-                    Log.d("MainActivity", "Okay");
-
-                    for (int color : selectedColors) {
-                        Log.d("MainActivity", Integer.toString(color));
-                    }
-                }
-
-                @Override
-                public void onColorPickerDialogCancelPressed(int[] selectedColors) {
-                    Log.d("MainActivity", "Cancel");
-                }
-            });
-        }
-
+        ColorPickerDialog colorPickerDialog = new ColorPickerDialog.Builder()
+                .useMaterial(true) // force the usage of material dialog
+                .maxSelectedColors(3)
+                .colors(colors)
+                .numColumns(2)
+                .build();
+        colorPickerDialog.show(getFragmentManager(), null);
     }
 
     @Override
@@ -90,6 +47,22 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+
+            Log.d("Main", Integer.toString(Color.parseColor("#33b5e5")));
+            Log.d("Main", Integer.toString(Color.parseColor("#aa66cc")));
+            Log.d("Main", Integer.toString(Color.parseColor("#99cc00")));
+            Log.d("Main", Integer.toString(Color.parseColor("#ffbb33")));
+            Log.d("Main", Integer.toString(Color.parseColor("#ff4444")));
+            Log.d("Main", Integer.toString(Color.parseColor("#0099cc")));
+            Log.d("Main", Integer.toString(Color.parseColor("#9933cc")));
+            Log.d("Main", Integer.toString(Color.parseColor("#669900")));
+            Log.d("Main", Integer.toString(Color.parseColor("#ff8800")));
+            Log.d("Main", Integer.toString(Color.parseColor("#cc0000")));
+            Log.d("Main", Integer.toString(Color.parseColor("#ffffff")));
+            Log.d("Main", Integer.toString(Color.parseColor("#eeeeee")));
+            Log.d("Main", Integer.toString(Color.parseColor("#cccccc")));
+            Log.d("Main", Integer.toString(Color.parseColor("#888888")));
+
             return true;
         }
 

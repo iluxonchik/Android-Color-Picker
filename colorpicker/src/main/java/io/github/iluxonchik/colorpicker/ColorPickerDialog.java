@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.app.Dialog;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,25 +15,30 @@ import android.widget.ProgressBar;
 import java.util.HashMap;
 
 /**
- * A dialog which takes in a input an array of colors and creates a pallete allowing the user to
+ * A dialog which takes in a input an array of colors and creates a palette allowing the user to
  * select one or more color swatches. There are two versions of the dialog: material and default.
  */
 public class ColorPickerDialog extends DialogFragment implements ColorPickerSwatch.OnColorSelectedListener {
 
+    /**
+     * Builder for {@link #ColorPickerDialog}.
+     */
     public static class Builder {
 
         private final String NON_POSITIVE_NUM_MSG = "Argument must be greater than zero";
 
         // Optional parameters, initialized to default values
         private int titleResId = R.string.dialog_title;
-        private int[] colors = new int[] {Color.RED, Color.GREEN, Color.BLUE};
+        private int[] colors = new int[] {-13388315, -5609780, -6697984, -17613, -48060, -16737844
+                -6736948, -10053376, -30720, -3407872, -1118482, -3355444, -7829368};
         private String[] colorContentDescriptions = null;
         private int[] selectedColors = new int[0];
-        private int numColumns = 5;
+        private int numColumns = 4;
         private int swatchSize = ColorPickerDialog.SIZE_SMALL;
         private int maxSelectedColors = 1;
         private boolean useMaterial = false;
         private boolean useDefaultColorContentDescriptions = true;
+        private OnOkCancelPressListener listener;
 
         public Builder() { }
 
@@ -61,7 +67,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         }
 
         /**
-         * Sets the number of columns in the palette.
+         * Sets the number of columns in the palette. Default value is 4.
          *
          * @return This Builder object to allow for chaining of calls to set methods
          */
@@ -138,6 +144,22 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
             this.useDefaultColorContentDescriptions = useDefaultColorContentDescriptions;
             return this;
         }
+
+        /**
+         * Sets the listener that gets called when the "Ok" or the "CANCEL" button gets pressed on
+         * the color picker dialog.
+         *
+         * You'll have to override two methods:
+         *<<code>public void onColorPickerDialogOkPressed(int[] selectedColors)</code> and
+         <code>public void onColorPickerDialogOkPressed(int[] selectedColors)</code>
+         both of them receive an array of the selected colors in the
+         {@link #ColorPickerDialog}, at the time "Ok" or "CANCEL" was pressed.
+         *
+         * @param listener an instance of the listener to assign
+         * @return This Builder object to allow for chaining of calls to set methods
+         */
+        public Builder setOnOkCancelPressListener(OnOkCancelPressListener listener) {
+            this.listener = listener; return this;}
 
         /**
          * Builds the ColorPickerDialog.
@@ -247,7 +269,8 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
         ColorPickerDialog colorPickerDialog = new ColorPickerDialog();
         colorPickerDialog.initialize(builder.titleResId, builder.colors, builder.selectedColors,
                 builder.numColumns, builder.swatchSize, builder.maxSelectedColors,
-                builder.colorContentDescriptions, builder.useDefaultColorContentDescriptions);
+                builder.colorContentDescriptions, builder.useDefaultColorContentDescriptions,
+                builder.listener);
         colorPickerDialog.setUseMaterialDialog(builder.useMaterial);
         return colorPickerDialog;
     }
@@ -255,10 +278,12 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
 
     private void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns,
                            int swatchSize, int maxSelectedColors, String[] colorContentDescriptions,
-                            boolean useDefaultColorContentDescriptions) {
+                            boolean useDefaultColorContentDescriptions,
+                            OnOkCancelPressListener listener) {
         this.maxSelectedColors = maxSelectedColors;
         this.colorContentDescriptions = colorContentDescriptions;
         this.useDefaultColorContentDescriptions = useDefaultColorContentDescriptions;
+        setOnOkCancelPressListener(listener);
         setArguments(titleResId, numColumns, swatchSize);
         initializeStateVars(selectedColors, colors);
         setColors(colors, colorSelected);
@@ -267,7 +292,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
     private void initialize(int titleResId, int[] colors, int[] selectedColors, int numColumns,
                            int swatchSize) {
         initialize(titleResId, colors, selectedColors, numColumns, swatchSize, Integer.MAX_VALUE,
-                null, true);
+                null, true, null);
     }
 
 
