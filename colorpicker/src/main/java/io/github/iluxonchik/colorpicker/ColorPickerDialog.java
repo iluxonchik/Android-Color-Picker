@@ -485,6 +485,7 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
          * initialized correctly, when a call to ".show()" is made, the dialog might exhibit
          * erroneous behavior.
          */
+        Integer index = null;
         numSelectedColors = selectedColors.length;
 
         HashMap<Integer, Integer> hasMap = new HashMap<Integer, Integer>();
@@ -496,7 +497,10 @@ public class ColorPickerDialog extends DialogFragment implements ColorPickerSwat
        // Arrays.fill(colorSelected, false);
 
         for (int color : selectedColors) {
-            colorSelected[indexOfColor.get(color)] = true;
+            index = indexOfColor.get(color);
+            // If color exists in palette, set it as marked, otherwise ignore
+            if (index != null)
+                colorSelected[index] = true;
         }
 
         if(selectedColors.length > 0) {
